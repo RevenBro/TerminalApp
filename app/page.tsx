@@ -1,8 +1,9 @@
 "use client"
+
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 
-const WELCOME_MESSAGE = "Welcome to Terminal v1.0.0\nType 'help' to see available commands"
+const WELCOME_MESSAGE = "Welcome to Terminal v1.1.0\nType 'help' to see available commands"
 
 interface OutputItem {
   type: string
