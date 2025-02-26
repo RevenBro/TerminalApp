@@ -5,9 +5,14 @@ import { useState, useEffect, useRef } from "react"
 
 const WELCOME_MESSAGE = "Welcome to Terminal v1.0.0\nType 'help' to see available commands"
 
+interface OutputItem {
+  type: string
+  content: string | React.ReactNode
+}
+
 const Terminal: React.FC = () => {
   const [input, setInput] = useState("")
-  const [output, setOutput] = useState(WELCOME_MESSAGE)
+  const [output, setOutput] = useState<OutputItem[]>([{ type: "welcome", content: WELCOME_MESSAGE }])
   const inputRef = useRef<HTMLInputElement>(null)
   const terminalRef = useRef<HTMLDivElement>(null)
 
@@ -35,31 +40,86 @@ const Terminal: React.FC = () => {
 
   const processCommand = (cmd: string) => {
     const trimmedCmd = cmd.trim().toLowerCase()
-    let response = ""
+    let response: OutputItem | null = null
 
     switch (trimmedCmd) {
       case "help":
-        response =
-          "Available commands:\n- help: Show this help message\n- clear: Clear the terminal\n- date: Show current date and time\n- echo [text]: Print the text\n- about: Show information about this terminal"
+        response = {
+          type: "help",
+          content:
+            "Available commands:\n- help: Show this help message\n- whoami: Display information about me\n- role: Display my professional role\n- clear: Clear the terminal\n- date: Show current date and time\n- echo [text]: Print the text\n- about: Display detailed information about me\n- links: Show my social media links",
+        }
         break
       case "clear":
-        setOutput("")
+        setOutput([{ type: "welcome", content: WELCOME_MESSAGE }])
         return
       case "date":
-        response = new Date().toLocaleString()
+        response = { type: "date", content: new Date().toLocaleString() }
+        break
+      case "whoami":
+        response = { type: "whoami", content: "Abdullokh Saidakbarov" }
+        break
+      case "role":
+        response = { type: "role", content: "Frontend Developer" }
         break
       case "about":
-        response = "This is a simple terminal emulator created with React and Next.js."
+        response = {
+          type: "about",
+          content:
+            "Aspiring Frontend Developer with a strong foundation in React.js and TypeScript. Passionate about continuous learning and eager to explore backend development. Committed to becoming a versatile full-stack developer. 🚀",
+        }
+        break
+      case "links":
+        response = {
+          type: "links",
+          content: (
+            <div>
+              <p>Here are my social media links:</p>
+              <ul>
+                <li>
+                  <a
+                    href="https://t.me/Saidakbarovv_A"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:underline"
+                  >
+                    Telegram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.instagram.com/abdullakh_bro"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-pink-400 hover:underline"
+                  >
+                    Instagram
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://github.com/RevenBro"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:underline"
+                  >
+                    GitHub
+                  </a>
+                </li>
+              </ul>
+            </div>
+          ),
+        }
         break
       default:
         if (trimmedCmd.startsWith("echo ")) {
-          response = trimmedCmd.slice(5) // Remove 'echo ' from the start
+          response = { type: "echo", content: trimmedCmd.slice(5) }
         } else {
-          response = `Command not found: ${cmd}. Type 'help' for available commands.`
+          response = { type: "error", content: `Command not found: ${cmd}. Type 'help' for available commands.` }
         }
     }
 
-    setOutput((prev) => `${prev}\n$ ${cmd}\n${response}`)
+    setOutput((prev) => [...prev, { type: "input", content: cmd }, response!])
   }
 
   return (
@@ -71,7 +131,11 @@ const Terminal: React.FC = () => {
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
         <div ref={terminalRef} className="p-4 flex-grow overflow-y-auto custom-scrollbar">
-          <pre className="whitespace-pre-wrap text-green-400 font-mono text-sm">{output}</pre>
+          {output.map((item, index) => (
+            <pre key={index} className={`whitespace-pre-wrap font-mono text-sm ${getTextColor(item.type)}`}>
+              {item.type === "input" ? `$ ${item.content}` : item.content}
+            </pre>
+          ))}
         </div>
         <form onSubmit={handleInputSubmit} className="p-4 bg-[#300a24] border-t border-gray-700">
           <div className="flex items-center">
@@ -89,6 +153,25 @@ const Terminal: React.FC = () => {
       </div>
     </div>
   )
+}
+
+function getTextColor(type: string): string {
+  switch (type) {
+    case "welcome":
+      return "text-blue-400"
+    case "help":
+      return "text-yellow-400"
+    case "input":
+      return "text-green-400"
+    case "error":
+      return "text-red-400"
+    case "about":
+      return "text-purple-400"
+    case "links":
+      return "text-cyan-400"
+    default:
+      return "text-white"
+  }
 }
 
 export default Terminal
